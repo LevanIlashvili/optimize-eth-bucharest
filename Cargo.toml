@@ -1,0 +1,42 @@
+[package]
+name = "libexamplebucharesthashing"
+version = "0.1.11"
+edition = "2021"
+license = "MIT"
+homepage = "https://ethbucharest.superposition.so"
+repository = "https://github.com/af-afk/ethbucharest.bayge.xyz"
+keywords = ["arbitrum", "ethereum", "stylus", "alloy"]
+
+[dependencies]
+alloy-sol-types = { version = "=0.8.20", default-features = false }
+mini-alloc = "0.8.3"
+siphasher = { version = "1.0.1", default-features = false }
+stylus-sdk = "0.8.3"
+tiny-keccak = "2.0.2"
+
+[dependencies.alloy-primitives]
+version = "=0.8.20"
+default-features = false
+features = ["native-keccak"]
+
+[dev-dependencies]
+const-hex = "1.14.0"
+proptest = "1.6.0"
+stylus-sdk = { version = "0.8.3", features = ["stylus-test"] }
+
+[features]
+debug = ["stylus-sdk/debug"]
+
+[[bin]]
+name = "examplebucharesthashing"
+path = "src/main.rs"
+
+[lib]
+crate-type = ["lib", "cdylib"]
+
+[profile.release]
+codegen-units = 1
+strip = true
+lto = true
+panic = "abort"
+opt-level = "s"
