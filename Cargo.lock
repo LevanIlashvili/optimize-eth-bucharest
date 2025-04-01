@@ -581,6 +581,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "array-concat"
+version = "0.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de9067cfeb22d851858da2a5af9a82e385d363623094efa61cef7a45e651fc81"
+
+[[package]]
 name = "arrayvec"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1711,6 +1717,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
+name = "libbucharesthashing"
+version = "0.1.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "246b9e4b80edf0702bc4646981ef53280387355e3d588c5b06ff37164173a823"
+dependencies = [
+ "alloy-primitives",
+ "alloy-sol-types",
+ "array-concat",
+ "mini-alloc",
+ "siphasher",
+ "stylus-sdk",
+ "tiny-keccak",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.171"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1723,6 +1744,7 @@ dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
  "const-hex",
+ "libbucharesthashing",
  "mini-alloc",
  "proptest",
  "siphasher",

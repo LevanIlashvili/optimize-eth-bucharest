@@ -7,48 +7,9 @@ use stylus_sdk::{alloy_primitives::*, prelude::*};
 
 use alloc::{collections::BTreeMap, vec, vec::Vec};
 
-use siphasher::sip::SipHasher13;
+use libbucharesthashing::{immutables::*, prover, prover::Piece};
 
 /* ~~~~~~~~~~~~~~ BOARD IMPLEMENTATION ~~~~~~~~~~~~~~ */
-
-const BOARD_SIZE: u32 = 0x1FFFF;
-
-const MAX_TRIES: u32 = 10_000;
-
-const CHECKS_NEEDED: u32 = 2;
-
-#[derive(Copy, Clone, Debug, PartialEq)]
-#[repr(u8)]
-pub enum Piece {
-    PAWN,
-    KNIGHT,
-    BISHOP,
-    CASTLE,
-    QUEEN,
-    KING,
-}
-
-impl From<Piece> for u8 {
-    fn from(v: Piece) -> Self {
-        v as u8
-    }
-}
-
-impl TryFrom<u8> for Piece {
-    type Error = ();
-
-    fn try_from(v: u8) -> Result<Self, Self::Error> {
-        match v {
-            0 => Ok(Piece::PAWN),
-            1 => Ok(Piece::KNIGHT),
-            2 => Ok(Piece::BISHOP),
-            3 => Ok(Piece::CASTLE),
-            4 => Ok(Piece::QUEEN),
-            5 => Ok(Piece::KING),
-            _ => Err(()),
-        }
-    }
-}
 
 /// Board that this game is played on. Could be of any size. This could
 /// be optimised for gas golfing.
@@ -157,7 +118,7 @@ pub fn solve(starting_hash: &[u8], start: u32) -> Option<(u32, u32)> {
     let mut board = BTreeMap::new();
     let mut last_king = None;
     for i in start..MAX_TRIES {
-        let e = hash(starting_hash, i);
+        let e = prover::hash(starting_hash, i);
         let king_id: u8 = Piece::KING.into();
         let p_id: u8 = (e % (king_id as u64 + 1)).try_into().unwrap();
         let p = Piece::try_from(p_id).unwrap();
@@ -178,14 +139,6 @@ pub fn solve(starting_hash: &[u8], start: u32) -> Option<(u32, u32)> {
     None
 }
 
-fn hash(x: &[u8], i: u32) -> u64 {
-    // The siphasher uses a u32 for the key, but we instead lift the count,
-    // which is also a 32 bit number to keep things simple and small.
-    let mut w = [0u8; 16];
-    w[12..].copy_from_slice(&i.to_be_bytes());
-    SipHasher13::new_with_key(&w).hash(x)
-}
-
 /* ~~~~~~~~~~~~~~ CONTRACT ENTRYPOINT ~~~~~~~~~~~~~~ */
 
 #[storage]
@@ -194,12 +147,17 @@ pub struct Storage {}
 
 #[public]
 impl Storage {
+    // We need to provide this function for the prover contract to check this
+    // contract's performance with this function.
     pub fn prove(&self, hash: FixedBytes<32>, from: u32) -> Result<(u32, u32), Vec<u8>> {
         Ok(solve(hash.as_slice(), from).unwrap())
     }
 }
 
 /* ~~~~~~~~~~~~~~ ALGORITHM TESTING ~~~~~~~~~~~~~~ */
+
+// This test code will randomly slam the function to test if it behaves
+// consistently. It will ranodmly create hashes for the test function.
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod test {
@@ -208,15 +166,19 @@ mod test {
 
     proptest! {
         #[test]
-        fn test_solve(
-            checks_needed in 1u32..=4,
-            board_size in 100u32..0x1FFFF,
-            starting_hash in any::<[u8; 64]>()
-        ) {
-            let (l, h) = solve(board_size, checks_needed, 1000, &starting_hash, 0).unwrap();
+        fn test_solve(starting_hash in any::<[u8; 64]>()) {
+            // First, let's test if the user-defined algorithm is consistent.
+            let (e_l, e_h) = solve(&starting_hash, 0).unwrap();
+            // Let's run our function against the first invocation of the function!
+            let (t_l, t_h) = solve(&starting_hash, e_l).unwrap();
+            // Now let's check if it's consistent.
+            assert_eq!((e_l, e_h), (t_l, t_h), "user contract not consistent. {e_l} != {t_l} or {e_h} != {t_h}");
+            // Now, let's test if the remote contract's prove function is consistent with the
+            // local function here.
+            let (p_l, p_h) = prover::default_solve(&starting_hash, e_l).unwrap();
             assert_eq!(
-                (l, h),
-                solve(board_size, checks_needed, 1000, &starting_hash, l).unwrap()
+                (e_l, e_h), (p_l, p_h),
+                "user contract inconsistent with reference. {e_l} != {p_l} or {e_h} != {p_h}"
             );
         }
     }

@@ -19,8 +19,9 @@ You can read more about ETH Bucharest hashing
 |------------------------|-----------------------------------------------------------------|
 | Standard foundry suite | [https://book.getfoundry.sh/getting-started/installation](link) |
 
-Make is not literally needed, but it can be useful as a frontend to `build.sh`, which
-invokes Cargo this way:
+Make is not needed, but it can be useful as a frontend to `build.sh`, which invokes Cargo
+this way:
+
 
 	cargo build \
 		--release \
@@ -36,7 +37,7 @@ Simple testing is possible using `proptest` to call the default-provided `solve`
 then to call it again with the same outputs.
 
 To compare your custom algorithm against the online contract, you can simply test your
-contract's output against
+custom prover implementation's output against
 
 ## Hard requirements for solutions
 

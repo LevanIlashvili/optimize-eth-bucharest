@@ -9,6 +9,7 @@ keywords = ["arbitrum", "ethereum", "stylus", "alloy"]
 
 [dependencies]
 alloy-sol-types = { version = "=0.8.20", default-features = false }
+libbucharesthashing = "0.1.12"
 mini-alloc = "0.8.3"
 siphasher = { version = "1.0.1", default-features = false }
 stylus-sdk = "0.8.3"
@@ -21,6 +22,7 @@ features = ["native-keccak"]
 
 [dev-dependencies]
 const-hex = "1.14.0"
+libbucharesthashing = "0.1.11"
 proptest = "1.6.0"
 stylus-sdk = { version = "0.8.3", features = ["stylus-test"] }
 
