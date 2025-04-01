@@ -15,10 +15,14 @@ You can read more about ETH Bucharest hashing
 
 To register your contract in the competition, you must have deployed your contract, have
 the testnet address that you used to register with the [ETH Bucharest
-faucet](https://faucet.ethbucharest.superposition.so), and have the **publicly deployed**
+faucet](https://faucet.ethbucharest.superposition.so), and have the **publicly accessible**
 Github repository or [The Wizard on Stylus shared link](https://thewizard.app/) included
-in the call on-chain. This ensures that a moderator doesn't remove you for not sharing
-your repo in your submission!
+in the call on-chain.
+
+This ensures that a moderator doesn't remove you for not sharing your repo in your
+submission!
+
+This is the config in the settings option to get the link:
 
 ![Wizard on Stylus config to get the URL](example-wizard.png "Wizard config")
 
@@ -26,7 +30,7 @@ You can either use (the Superposition submitter
 form)[https://ethbucharest.superposition.so], `register.sh`:
 
 	export SPN_SUPERPOSITION_KEY=<your private key>
-	./register.sh <your contract address> <your testnet deployer address> <your github repository>
+	./register.sh <your contract address> <your testnet deployer address> <your code link>
 
 Or cast:
 
