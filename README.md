@@ -6,18 +6,18 @@ Gas Redux challenge.
 
 The goal of the hackathon is to find cheaper solutions when the "prove" function is
 called, returning output that can be verified by the reference prover
-(https://github.com/af-afk/ethbucharest.bayge.xyz/blob/trunk/src/prover.rs)[here].
+[here](https://github.com/af-afk/ethbucharest.bayge.xyz/blob/trunk/src/prover.rs).
 
 You can read more about ETH Bucharest hashing
-(https://stylus-saturdays.com/i/159344476/introducing-bucharest-pow)[here].
+[here](https://stylus-saturdays.com/i/159344476/introducing-bucharest-pow).
 
 ## Getting started
 
 ### Dependencies
 
-|        Description     |                               Link                              |
-|------------------------|-----------------------------------------------------------------|
-| Standard foundry suite | (https://book.getfoundry.sh/getting-started/installation)[link] |
+| Description            | Link                                                               |
+|------------------------|--------------------------------------------------------------------|
+| Standard foundry suite | [link](https://book.getfoundry.sh/getting-started/installation)   |
 
 Make is not needed, but it can be useful as a frontend to `build.sh`, which invokes Cargo
 this way:
