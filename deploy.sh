@@ -6,7 +6,7 @@
 export SPN_SUPERPOSITION_URL=https://testnet-rpc.superposition.so
 
 if [ -z "$SPN_SUPERPOSITION_KEY" ]; then
-	>&2 echo "SPN_SUPERPOSITION_KEY needs to be set with a private key for deploy"
+	>&2 echo "SPN_SUPERPOSITION_KEY needs to be set with a private key for deploy (export SPN_SUPERPOSITION_KEY=<your private key>) before running this script"
 	exit 1
 fi
 

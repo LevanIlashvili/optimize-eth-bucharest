@@ -157,7 +157,7 @@ impl Storage {
 /* ~~~~~~~~~~~~~~ ALGORITHM TESTING ~~~~~~~~~~~~~~ */
 
 // This test code will randomly slam the function to test if it behaves
-// consistently. It will ranodmly create hashes for the test function.
+// consistently. It will create hashes for the test function.
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod test {
