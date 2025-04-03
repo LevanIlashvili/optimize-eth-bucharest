@@ -128,9 +128,12 @@ fn in_check_threats(board: &Board, row_size: u32, king_pos: u32) -> Vec<u32> {
     }
     
     for &(pos, piece) in &board.potential_threats {
+        let (piece_x, piece_y) = pos_to_xy(row_size, pos);
+        let dx = if piece_x > king_x { piece_x - king_x } else { king_x - piece_x };
+        let dy = if piece_y > king_y { piece_y - king_y } else { king_y - piece_y };
+
         match piece {
             Piece::PAWN => {
-                let (piece_x, piece_y) = pos_to_xy(row_size, pos);
                 if (king_y == piece_y + 1) && 
                    ((king_x == piece_x + 1) || (king_x == piece_x - 1)) {
                     if let Some((_, n)) = board.get(pos) {
@@ -139,10 +142,6 @@ fn in_check_threats(board: &Board, row_size: u32, king_pos: u32) -> Vec<u32> {
                 }
             },
             Piece::KNIGHT => {
-                let (piece_x, piece_y) = pos_to_xy(row_size, pos);
-                let dx = if piece_x > king_x { piece_x - king_x } else { king_x - piece_x };
-                let dy = if piece_y > king_y { piece_y - king_y } else { king_y - piece_y };
-                
                 if (dx == 1 && dy == 2) || (dx == 2 && dy == 1) {
                     if let Some((_, n)) = board.get(pos) {
                         add_threat_and_check!(*n);
@@ -150,10 +149,6 @@ fn in_check_threats(board: &Board, row_size: u32, king_pos: u32) -> Vec<u32> {
                 }
             },
             Piece::BISHOP => {
-                let (piece_x, piece_y) = pos_to_xy(row_size, pos);
-                let dx = if piece_x > king_x { piece_x - king_x } else { king_x - piece_x };
-                let dy = if piece_y > king_y { piece_y - king_y } else { king_y - piece_y };
-                
                 if dx == dy {
                     if is_path_clear_diagonal(board, row_size, king_x, king_y, piece_x, piece_y) {
                         if let Some((_, n)) = board.get(pos) {
@@ -163,8 +158,6 @@ fn in_check_threats(board: &Board, row_size: u32, king_pos: u32) -> Vec<u32> {
                 }
             },
             Piece::CASTLE => {
-                let (piece_x, piece_y) = pos_to_xy(row_size, pos);
-                
                 if piece_x == king_x || piece_y == king_y {
                      if is_path_clear_straight(board, row_size, king_x, king_y, piece_x, piece_y) {
                         if let Some((_, n)) = board.get(pos) {
@@ -174,10 +167,6 @@ fn in_check_threats(board: &Board, row_size: u32, king_pos: u32) -> Vec<u32> {
                 }
             },
             Piece::QUEEN => {
-                let (piece_x, piece_y) = pos_to_xy(row_size, pos);
-                let dx = if piece_x > king_x { piece_x - king_x } else { king_x - piece_x };
-                let dy = if piece_y > king_y { piece_y - king_y } else { king_y - piece_y };
-                
                 let mut clear_path = false;
                 if piece_x == king_x || piece_y == king_y {
                     clear_path = is_path_clear_straight(board, row_size, king_x, king_y, piece_x, piece_y);
@@ -192,10 +181,6 @@ fn in_check_threats(board: &Board, row_size: u32, king_pos: u32) -> Vec<u32> {
                 }
             },
             Piece::KING => {
-                let (piece_x, piece_y) = pos_to_xy(row_size, pos);
-                let dx = if piece_x > king_x { piece_x - king_x } else { king_x - piece_x };
-                let dy = if piece_y > king_y { piece_y - king_y } else { king_y - piece_y };
-                
                 if dx <= 1 && dy <= 1 && (dx > 0 || dy > 0) {
                     if let Some((_, n)) = board.get(pos) {
                         add_threat_and_check!(*n);
@@ -227,7 +212,9 @@ pub fn solve(starting_hash: &[u8], start: u32) -> Option<(u32, u32)> {
                 let mut threats = in_check_threats(&board, row_size, king_pos);
                 if threats.len() >= CHECKS_NEEDED as usize {
                     threats.push(king_nonce);
-                    return Some((*threats.iter().min().unwrap(), i));
+                    if let Some(min_threat_nonce) = threats.iter().min() {
+                         return Some((*min_threat_nonce, i));
+                    }
                 }
             }
         } 
@@ -244,14 +231,47 @@ pub fn solve(starting_hash: &[u8], start: u32) -> Option<(u32, u32)> {
                 Piece::BISHOP => dx == dy,
                 Piece::CASTLE => piece_x == king_x || piece_y == king_y,
                 Piece::QUEEN => piece_x == king_x || piece_y == king_y || dx == dy,
-                Piece::KING => dx <= 1 && dy <= 1,
+                Piece::KING => false,
             };
             
             if is_potential_threat {
-                let mut threats = in_check_threats(&board, row_size, king_pos);
-                if threats.len() >= CHECKS_NEEDED as usize {
-                    threats.push(king_nonce);
-                    return Some((*threats.iter().min().unwrap(), i));
+                let mut is_actual_threat = false;
+                match p {
+                   Piece::PAWN | Piece::KNIGHT => {
+                       is_actual_threat = true;
+                   }
+                   Piece::BISHOP => {
+                       if is_path_clear_diagonal(&board, row_size, king_x, king_y, piece_x, piece_y) {
+                           is_actual_threat = true;
+                       }
+                   }
+                   Piece::CASTLE => {
+                       if is_path_clear_straight(&board, row_size, king_x, king_y, piece_x, piece_y) {
+                           is_actual_threat = true;
+                       }
+                   }
+                   Piece::QUEEN => {
+                       if piece_x == king_x || piece_y == king_y {
+                           if is_path_clear_straight(&board, row_size, king_x, king_y, piece_x, piece_y) {
+                               is_actual_threat = true;
+                           }
+                       } else if dx == dy {
+                           if is_path_clear_diagonal(&board, row_size, king_x, king_y, piece_x, piece_y) {
+                               is_actual_threat = true;
+                           }
+                       }
+                   }
+                   Piece::KING => {}
+                }
+
+                if is_actual_threat {
+                    let mut threats = in_check_threats(&board, row_size, king_pos);
+                    if threats.len() >= CHECKS_NEEDED as usize {
+                        threats.push(king_nonce);
+                        if let Some(min_threat_nonce) = threats.iter().min() {
+                            return Some((*min_threat_nonce, i));
+                        }
+                    }
                 }
             }
         }
