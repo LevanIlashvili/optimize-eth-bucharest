@@ -45,7 +45,7 @@ fn is_solved(row_size: u32, king_pos: u32, piece_pos: u32, piece: Piece) -> bool
 pub fn solve(starting_hash: &[u8], start: u32) -> Option<(u32, u32)> {
     let row_size = BOARD_SIZE.isqrt();
     let mut grid = vec![None; BOARD_SIZE as usize]; 
-    let mut pieces: Vec<(u32, Piece, u32)> = Vec::new();
+    let mut piece_positions = Vec::new();
     let mut king_pos: Option<u32> = None;
     let mut king_nonce: Option<u32> = None; 
     let mut threats = Vec::new();
@@ -59,16 +59,20 @@ pub fn solve(starting_hash: &[u8], start: u32) -> Option<(u32, u32)> {
         let pos: u32 = offset % BOARD_SIZE;
 
         grid[pos as usize] = Some((i, p));
-        pieces.push((i, p, pos));
+        piece_positions.push(pos);
 
         if p == Piece::KING {
             king_pos = Some(pos);
             king_nonce = Some(i);
             threats.clear();
             
-            for &(nonce, piece, piece_pos) in &pieces {
-                if nonce != i && piece != Piece::KING && is_solved(row_size, pos, piece_pos, piece) {
-                    threats.push(nonce);
+            for &other_pos in &piece_positions {
+                if other_pos != pos { 
+                    if let Some((other_nonce, other_piece)) = grid[other_pos as usize] {
+                        if other_piece != Piece::KING && is_solved(row_size, pos, other_pos, other_piece) {
+                            threats.push(other_nonce);
+                        }
+                    }
                 }
             }
         } 
