@@ -13,7 +13,21 @@ fn pos_to_xy(row_size: u32, p: u32) -> (u32, u32) {
     (p % row_size, p / row_size)
 }
 
-fn is_solved(row_size: u32, king_pos: u32, piece_pos: u32, piece: Piece) -> bool {
+fn in_check_threats(
+    board: &Board,
+    row_size: u32,
+    king_pos: u32,
+) -> Vec<u32> {
+    let mut threats = vec![];
+    for (nonce, piece, piece_pos) in board {
+        if is_checking(row_size, king_pos, *piece_pos, *piece) {
+            threats.push(*nonce);
+        }
+    }
+    threats
+}
+
+fn is_checking(row_size: u32, king_pos: u32, piece_pos: u32, piece: Piece) -> bool {
     let (king_x, king_y) = pos_to_xy(row_size, king_pos);
     let (piece_x, piece_y) = pos_to_xy(row_size, piece_pos);
 
@@ -56,23 +70,16 @@ pub fn solve(starting_hash: &[u8], start: u32) -> Option<(u32, u32)> {
         let offset: u32 = (e >> 32).try_into().unwrap();
         let pos: u32 = offset % BOARD_SIZE;
 
+        board.push((i, p, pos)); 
+
         if p == Piece::KING {
             last_king = Some((pos, i));
-            threats.clear(); 
-            
-            for &(nonce, piece, piece_pos) in &board {
-                if piece != Piece::KING && is_solved(row_size, pos, piece_pos, piece) {
-                    threats.push(nonce);
-                }
-            }
-        } 
-        else if let Some((last_king_pos, _)) = last_king {
-            if is_solved(row_size, last_king_pos, pos, p) {
+            threats = in_check_threats(&board, row_size, pos);
+        } else if let Some((last_king_pos, _)) = last_king {
+            if is_checking(row_size, last_king_pos, pos, p) {
                 threats.push(i);
             }
         }
-        
-        board.push((i, p, pos));
 
         if let Some((_, last_king_nonce)) = last_king {
             if threats.len() >= CHECKS_NEEDED as usize {
@@ -108,6 +115,7 @@ mod test {
     use proptest::prelude::*;
 
     proptest! {
+        #![proptest_config(ProptestConfig { cases: 5000, ..Default::default() })]
         #[test]
         fn test_solve(starting_hash in prop::array::uniform32(any::<u8>())) {
             
