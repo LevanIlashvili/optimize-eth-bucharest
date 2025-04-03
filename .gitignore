@@ -1,2 +1,7 @@
 contract.wasm
 target
+*.sh
+*.log
+
+.bak
+*/.bak

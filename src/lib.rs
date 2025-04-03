@@ -60,11 +60,11 @@ impl Board {
 }
 
 fn pos_to_xy(row_size: u32, p: u32) -> (u32, u32) {
-    (p & 7, p >> 3)
+    (p % row_size, p / row_size)
 }
 
 fn xy_to_pos(row_size: u32, x: u32, y: u32) -> u32 {
-    (y << 3) + x
+    y.wrapping_mul(row_size).wrapping_add(x)
 }
 
 fn in_bounds(row_size: u32, x: u32, y: u32) -> bool {
