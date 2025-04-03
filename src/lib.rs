@@ -64,18 +64,15 @@ pub fn solve(starting_hash: &[u8], start: u32) -> Option<(u32, u32)> {
         }
 
         if let Some((current_king_pos, current_king_nonce)) = last_king {
-            // Simulate BTreeMap overwrite by only considering the latest piece at each position
             let mut threats: Vec<u32> = Vec::new();
             let mut visited_pos: HashSet<u32> = HashSet::new();
 
             for &(nonce, piece, piece_pos) in board.iter().rev() {
-                // If we've already processed a newer piece at this position, skip
                 if visited_pos.contains(&piece_pos) {
                     continue;
                 }
                 visited_pos.insert(piece_pos);
 
-                // Check if this (latest) piece at piece_pos threatens the king
                 if nonce != current_king_nonce && is_solved(row_size, current_king_pos, piece_pos, piece) {
                     threats.push(nonce);
                 }
