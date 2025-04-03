@@ -73,8 +73,10 @@ pub fn solve(starting_hash: &[u8], start: u32) -> Option<(u32, u32)> {
         board.push((i, p, pos)); 
 
         if p == Piece::KING {
+            if last_king.is_some() {
+                threats = in_check_threats(&board, row_size, pos);
+            }
             last_king = Some((pos, i));
-            threats = in_check_threats(&board, row_size, pos);
         } else if let Some((last_king_pos, _)) = last_king {
             if is_solved(row_size, last_king_pos, pos, p) {
                 threats.push(i);
