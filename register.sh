@@ -6,7 +6,7 @@ err() {
 }
 
 usage() {
-	log "./register.sh <deployed contract address> <your testnet address> <your git repository>"
+	err "./register.sh <deployed contract address> <your testnet address> <your git repository>"
 }
 
 [ -z "$SPN_SUPERPOSITION_KEY" ] && \
@@ -17,7 +17,8 @@ if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then usage; fi
 cast send \
 	--rpc-url https://testnet-rpc.superposition.so \
 	--private-key "$SPN_SUPERPOSITION_KEY" \
-	0x0000000000000000000000000000000000000000 \
+	0x301fa1a4e2c1d543efc4237209507f168df00eb3 \
 	'register(address,address,string)' \
 	$1 \
 	$2 \
+	$3
