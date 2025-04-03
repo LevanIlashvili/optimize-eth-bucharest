@@ -7,7 +7,7 @@ use alloc::vec::Vec;
 
 use libbucharesthashing::{immutables::*, prover, prover::Piece};
 
-pub type Grid = Vec<Option<(u32, Piece)>>;
+pub type Board = Vec<(u32, Piece, u32)>;
 
 fn pos_to_xy(row_size: u32, p: u32) -> (u32, u32) {
     (p % row_size, p / row_size)
@@ -44,11 +44,9 @@ fn is_solved(row_size: u32, king_pos: u32, piece_pos: u32, piece: Piece) -> bool
 
 pub fn solve(starting_hash: &[u8], start: u32) -> Option<(u32, u32)> {
     let row_size = BOARD_SIZE.isqrt();
-    let mut grid = vec![None; BOARD_SIZE as usize]; 
-    let mut piece_positions = Vec::new();
-    let mut king_pos: Option<u32> = None;
-    let mut king_nonce: Option<u32> = None; 
-    let mut threats = Vec::new();
+    let mut board: Board = Vec::new();
+    let mut last_king: Option<(u32, u32)> = None; 
+    let mut threats: Vec<u32> = vec![];
 
     for i in start..MAX_TRIES {
         let e = prover::hash(starting_hash, i);
@@ -58,34 +56,28 @@ pub fn solve(starting_hash: &[u8], start: u32) -> Option<(u32, u32)> {
         let offset: u32 = (e >> 32).try_into().unwrap();
         let pos: u32 = offset % BOARD_SIZE;
 
-        grid[pos as usize] = Some((i, p));
-        piece_positions.push(pos);
-
         if p == Piece::KING {
-            king_pos = Some(pos);
-            king_nonce = Some(i);
-            threats.clear();
+            last_king = Some((pos, i));
+            threats.clear(); 
             
-            for &other_pos in &piece_positions {
-                if other_pos != pos { 
-                    if let Some((other_nonce, other_piece)) = grid[other_pos as usize] {
-                        if other_piece != Piece::KING && is_solved(row_size, pos, other_pos, other_piece) {
-                            threats.push(other_nonce);
-                        }
-                    }
+            for &(nonce, piece, piece_pos) in &board {
+                if piece != Piece::KING && is_solved(row_size, pos, piece_pos, piece) {
+                    threats.push(nonce);
                 }
             }
         } 
-        else if let Some(kp) = king_pos {
-            if is_solved(row_size, kp, pos, p) {
+        else if let Some((last_king_pos, _)) = last_king {
+            if is_solved(row_size, last_king_pos, pos, p) {
                 threats.push(i);
             }
         }
+        
+        board.push((i, p, pos));
 
-        if let Some(kn) = king_nonce {
+        if let Some((_, last_king_nonce)) = last_king {
             if threats.len() >= CHECKS_NEEDED as usize {
-                if !threats.contains(&kn) {
-                    threats.push(kn);
+                if !threats.contains(&last_king_nonce) {
+                    threats.push(last_king_nonce);
                 }
                 if let Some(first_threat) = threats.iter().min() {
                     return Some((*first_threat, i));
