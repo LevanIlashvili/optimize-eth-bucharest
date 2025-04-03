@@ -4,4 +4,4 @@ target
 *.log
 
 .bak
-*/.bak
+*/*.bak
