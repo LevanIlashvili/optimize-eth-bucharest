@@ -4,4 +4,6 @@ target
 *.log
 
 .bak
-*/.bak
+*/*.bak
+*.md
+proptest-regressions
